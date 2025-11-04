@@ -192,8 +192,7 @@
     }
 
     
-    // --- FUNCIÓN 'displayResults' SIMPLIFICADA ---
-    // (Lee lat/lon limpias directamente)
+    // --- FUNCIÓN 'displayResults' CON LINK CORREGIDO ---
 
     function displayResults(filtered) {
       const container = document.getElementById('results');
@@ -207,7 +206,6 @@
         let query = '';
 
         // 1. Prioridad: Usar 'latitud' y 'longitud' (Columnas P y Q)
-        // Como ya están limpias (ej: -34.9539091), las usamos directo.
         if (d.latitud && d.longitud) {
           query = `${d.latitud},${d.longitud}`;
         }
@@ -217,7 +215,9 @@
           query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
         }
         
-        const loc = `http://googleusercontent.com/maps/google.com/16{encodeURIComponent(query)}`;
+        // --- LÍNEA CORREGIDA ---
+        // Faltaba el $ y la URL de Google Maps era incorrecta.
+        const loc = `https://maps.google.com/?q=${encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
