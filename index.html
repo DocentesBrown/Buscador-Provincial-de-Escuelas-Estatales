@@ -1,329 +1,229 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Buscador de Escuelas - Docentes Brown</title>
-  <meta name="description" content="Buscador de escuelas estatales optimizado por Docentes Brown" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Buscador de Escuelas Estatales - Docentes Brown</title>
   <style>
-    :root{
-      --azul-osc:#24496e;
-      --morado:#4d3069;
-      --azul-claro:#3d8fb0;
-      --crema:#f3efdc;
-      --salmon:#da6863;
-      --blanco:#ffffff;
-      --gris:#f4f6f8;
-      --texto:#222;
-      --radio:12px;
-      font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f3efdc;
+      color: #24496e;
+      margin: 0;
+      padding: 0;
+      text-align: center;
     }
-    html,body{height:100%;margin:0;background:linear-gradient(180deg,var(--crema),#ffffff 60%);color:var(--texto)}
-    .container{max-width:1100px;margin:24px auto;padding:20px}
-
-    header{display:flex;align-items:center;gap:16px}
-    .logo{width:64px;height:64px;border-radius:12px;background:linear-gradient(135deg,var(--azul-osc),var(--morado));display:flex;align-items:center;justify-content:center;color:var(--blanco);font-weight:700;font-size:18px}
-    h1{margin:0;font-size:1.6rem;color:var(--azul-osc)}
-    .subtitle{margin-top:6px;color:var(--morado);font-size:0.95rem}
-    .subtitle a{color:var(--morado);text-decoration:none;font-weight:600}
-
-    .card{background:var(--blanco);border-radius:14px;padding:16px;box-shadow:0 6px 18px rgba(36,73,110,0.08);border:1px solid rgba(36,73,110,0.06)}
-
-    .filters{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin:18px 0}
-    select{width:100%;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.08);background:var(--gris);font-weight:600}
-
-    .results{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:14px}
-    .school-card{padding:14px;border-radius:10px;border-left:6px solid var(--azul-claro);background:linear-gradient(180deg,#ffffff, #fbfbfb)}
-    .school-card h3{margin:0 0 6px 0}
-    .meta{font-size:0.9rem;color:#444;margin-bottom:8px}
-    .kv{display:flex;gap:8px;flex-wrap:wrap}
-    .kv span{background:rgba(61,143,176,0.08);padding:6px 8px;border-radius:8px;font-size:0.85rem}
-    .actions{display:flex;gap:8px;margin-top:10px}
-    .btn{padding:8px 12px;border-radius:10px;border:none;cursor:pointer;font-weight:700}
-    .btn-map{background:var(--azul-osc);color:var(--blanco)}
-    .btn-dona{background:var(--salmon);color:var(--blanco);margin-top:18px;padding:12px 16px;border-radius:12px;display:inline-flex;align-items:center;gap:8px}
-
-    footer{margin-top:20px;text-align:center;color:#666}
-
-    /* responsive */
-    @media (max-width:900px){
-      .filters{grid-template-columns:repeat(2,1fr)}
+    header {
+      background-color: #24496e;
+      color: white;
+      padding: 1rem;
+      border-bottom: 5px solid #da6863;
     }
-    @media (max-width:520px){
-      .filters{grid-template-columns:1fr}
-      header{flex-direction:column;align-items:flex-start}
-      .logo{width:56px;height:56px}
+    h1 {
+      margin: 0;
+    }
+    h2 {
+      font-size: 1rem;
+      margin-top: 0.5rem;
+      color: #f3efdc;
+    }
+    h2 a {
+      color: #da6863;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .filters {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      margin: 1rem;
+    }
+    select {
+      padding: 0.5rem;
+      border-radius: 8px;
+      border: 1px solid #3d8fb0;
+      width: 90%;
+      max-width: 400px;
+    }
+    .results {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 1rem;
+    }
+    .card {
+      background-color: white;
+      border: 2px solid #3d8fb0;
+      border-radius: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      padding: 1rem;
+      margin: 0.5rem;
+      width: 90%;
+      max-width: 600px;
+      text-align: left;
+    }
+    .btn {
+      display: inline-block;
+      background-color: #da6863;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: bold;
+      margin-top: 0.5rem;
+    }
+    footer {
+      background-color: #4d3069;
+      color: white;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    #contador {
+      font-weight: bold;
+      color: #f3efdc;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo">DB</div>
-      <div>
-        <h1>Buscador de Escuelas Estatales</h1>
-        <div class="subtitle">Optimizado por Docentes Brown — seguinos en IG: <a href="https://instagram.com/docentesbrown" target="_blank" rel="noopener">@docentesbrown</a></div>
-      </div>
-    </header>
+  <header>
+    <h1>Buscador de Escuelas Estatales</h1>
+    <h2>Optimizado por <a href="https://www.instagram.com/docentesbrown" target="_blank">@docentesbrown</a></h2>
+  </header>
 
-    <div class="card" style="margin-top:16px">
-      <div style="font-weight:800;margin-bottom:8px">Filtros</div>
-      <div class="filters">
-        <select id="filter-region"><option value="">— Todas las REGIONES —</option></select>
-        <select id="filter-distrito" disabled><option value="">— Todos los DISTRITOS —</option></select>
-        <select id="filter-nivel" disabled><option value="">— Todos los NIVELES —</option></select>
-        <select id="filter-modalidad" disabled><option value="">— Todas las MODALIDADES —</option></select>
-        <select id="filter-nro" disabled><option value="">— Nº de ESCUELA —</option></select>
-      </div>
+  <section class="filters">
+    <select id="regionFilter"><option value="">Seleccionar Región</option></select>
+    <select id="distritoFilter"><option value="">Seleccionar Distrito</option></select>
+    <select id="nivelFilter"><option value="">Seleccionar Nivel</option></select>
+    <select id="modalidadFilter"><option value="">Seleccionar Modalidad</option></select>
+    <select id="numeroFilter"><option value="">Seleccionar Nº de Escuela</option></select>
+  </section>
 
-      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <input type="text" id="search-name" placeholder="Buscar por nombre o calle..." style="flex:1;padding:10px;border-radius:10px;border:1px solid rgba(0,0,0,0.08)" />
-        <button id="btn-reset" class="btn" style="background:var(--morado);color:var(--blanco)">Limpiar filtros</button>
-      </div>
+  <section class="results" id="results"></section>
 
-      <div id="loading" style="margin-top:12px;color:#555;display:none">Cargando datos...</div>
-
-      <div id="results" class="results" style="margin-top:12px"></div>
-
-      <div style="text-align:center">
-        <a class="btn-dona" href="https://cafecito.app/docentesbrown" target="_blank" rel="noopener"><strong>☕ DONA UN CAFECITO</strong></a>
-      </div>
-
-    </div>
-
-    <footer>
-      <small>Datos cargados desde la planilla pública de Google Sheets.</small>
-    </footer>
-  </div>
+  <footer>
+    <p id="contador">Cargando visitas...</p>
+    <a class="btn" href="https://cafecito.app/docentesbrown" target="_blank">☕ Doná un Cafecito</a>
+  </footer>
 
   <script>
-    // URL pública (pubhtml) proporcionada por el usuario
-    const SHEET_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pubhtml';
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pubhtml';
 
-    // Column names en el orden que el usuario especificó
-    const HEADERS = [
-      'region_educativa',
-      'distrito',
-      'clave',
-      'nombre',
-      'calle',
-      'nro',
-      'calle_lateral_derecha',
-      'calle_lateral_izquierda',
-      'localidad',
-      'caracteristica_telefonica',
-      'nro_telefono',
-      'email',
-      'tipo_organizacion',
-      'desfavorabilidad',
-      'sede_axo_ext',
-      'latitud',
-      'longitud',
-      'modalidad',
-      'nivel',
-      'turnos',
-      'nro_escuela',
-      'the_geom'
-    ];
-
-    let rawData = [];
-    const $loading = document.getElementById('loading');
-    const $results = document.getElementById('results');
-
-    // selects
-    const selectRegion = document.getElementById('filter-region');
-    const selectDistrito = document.getElementById('filter-distrito');
-    const selectNivel = document.getElementById('filter-nivel');
-    const selectModalidad = document.getElementById('filter-modalidad');
-    const selectNro = document.getElementById('filter-nro');
-    const inputSearch = document.getElementById('search-name');
-    const btnReset = document.getElementById('btn-reset');
-
-    // Fetch the published HTML and parse the table rows
-    async function fetchSheetHtml(){
-      $loading.style.display = 'block';
-      try{
-        const res = await fetch(SHEET_URL);
-        const text = await res.text();
+    async function loadData() {
+      try {
+        const response = await fetch(sheetUrl);
+        const html = await response.text();
         const parser = new DOMParser();
-        const doc = parser.parseFromString(text, 'text/html');
+        const doc = parser.parseFromString(html, 'text/html');
+        const tables = doc.querySelectorAll('table');
+        if (!tables.length) throw new Error('No se encontró ninguna tabla en la publicación.');
 
-        // The published sheet usually contains a single <table> with the data
-        const table = doc.querySelector('table');
-        if(!table) throw new Error('No se encontró la tabla en la publicación.');
+        // Usamos la primera tabla con datos válidos
+        const table = Array.from(tables).find(t => t.querySelectorAll('tr').length > 1);
+        if (!table) throw new Error('No se encontraron filas con datos en la hoja.');
 
-        const rows = Array.from(table.querySelectorAll('tbody tr'));
-        rawData = rows.map(r => {
-          const cells = Array.from(r.querySelectorAll('td'));
-          // Some published sheets include a leading index column; try to align to HEADERS by taking last N cells
-          const values = cells.map(c => c.textContent.trim());
-          // If there are more cells than headers, take the last HEADERS.length cells (to ignore row numbers)
-          const start = Math.max(0, values.length - HEADERS.length);
-          const relevant = values.slice(start, start + HEADERS.length);
-          const obj = {};
-          HEADERS.forEach((h,i)=>obj[h] = (relevant[i] !== undefined ? relevant[i] : ''));
-          return obj;
-        });
-
-        populateRegion();
-        applyFilters();
-      }catch(err){
-        console.error(err);
-        $results.innerHTML = `<div style="padding:12px;color:#900">Error cargando datos: ${err.message}. Si ves un error CORS, subí este archivo a GitHub Pages o usa un servidor que permita acceder a la URL.</div>`;
-      }finally{
-        $loading.style.display = 'none';
+        const rows = Array.from(table.querySelectorAll('tr')).map(r => Array.from(r.querySelectorAll('td')).map(td => td.innerText.trim()));
+        const headers = rows.shift();
+        const data = rows.map(r => Object.fromEntries(headers.map((h, i) => [h, r[i]])));
+        populateFilters(data);
+        setupFilterListeners(data);
+      } catch (error) {
+        document.getElementById('results').innerHTML = `<p style="color:red">Error cargando datos: ${error.message}</p>`;
       }
     }
 
-    // Helpers to get unique sorted values
-    function uniqueSorted(arr){
-      return Array.from(new Set(arr.filter(v => v && v !== ''))).sort((a,b)=>a.localeCompare(b, 'es'));
+    function populateFilters(data) {
+      const regions = [...new Set(data.map(d => d.region_educativa).filter(Boolean))].sort();
+      fillSelect('regionFilter', regions);
     }
 
-    function populateSelect($select, values, placeholder){
-      $select.innerHTML = '';
-      const opt = document.createElement('option'); opt.value = ''; opt.textContent = placeholder; $select.appendChild(opt);
-      values.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;$select.appendChild(o)});
-      $select.disabled = values.length===0;
+    function fillSelect(id, options) {
+      const select = document.getElementById(id);
+      select.innerHTML = '<option value="">Seleccionar</option>' + options.map(o => `<option value="${o}">${o}</option>`).join('');
     }
 
-    function populateRegion(){
-      const regiones = uniqueSorted(rawData.map(r=>r.region_educativa));
-      populateSelect(selectRegion, regiones, '— Todas las REGIONES —');
-      // initially disable others
-      selectDistrito.innerHTML = '<option value="">— Todos los DISTRITOS —</option>'; selectDistrito.disabled = true;
-      selectNivel.innerHTML = '<option value="">— Todos los NIVELES —</option>'; selectNivel.disabled = true;
-      selectModalidad.innerHTML = '<option value="">— Todas las MODALIDADES —</option>'; selectModalidad.disabled = true;
-      selectNro.innerHTML = '<option value="">— Nº de ESCUELA —</option>'; selectNro.disabled = true;
-    }
+    function setupFilterListeners(data) {
+      const region = document.getElementById('regionFilter');
+      const distrito = document.getElementById('distritoFilter');
+      const nivel = document.getElementById('nivelFilter');
+      const modalidad = document.getElementById('modalidadFilter');
+      const numero = document.getElementById('numeroFilter');
 
-    // When user changes filters, compute dependent options
-    selectRegion.addEventListener('change', ()=>{
-      const region = selectRegion.value;
-      const filtered = region ? rawData.filter(r=>r.region_educativa === region) : rawData;
-      const distritos = uniqueSorted(filtered.map(r=>r.distrito));
-      populateSelect(selectDistrito, distritos, '— Todos los DISTRITOS —');
-      // reset downstream
-      selectNivel.innerHTML = '<option value="">— Todos los NIVELES —</option>'; selectNivel.disabled = true;
-      selectModalidad.innerHTML = '<option value="">— Todas las MODALIDADES —</option>'; selectModalidad.disabled = true;
-      selectNro.innerHTML = '<option value="">— Nº de ESCUELA —</option>'; selectNro.disabled = true;
-      applyFilters();
-    });
+      region.addEventListener('change', () => {
+        const filtered = data.filter(d => d.region_educativa === region.value);
+        fillSelect('distritoFilter', [...new Set(filtered.map(d => d.distrito).filter(Boolean))].sort());
+        document.getElementById('results').innerHTML = '';
+      });
 
-    selectDistrito.addEventListener('change', ()=>{
-      const region = selectRegion.value;
-      const distrito = selectDistrito.value;
-      let filtered = rawData;
-      if(region) filtered = filtered.filter(r=>r.region_educativa === region);
-      if(distrito) filtered = filtered.filter(r=>r.distrito === distrito);
-      const niveles = uniqueSorted(filtered.map(r=>r.nivel));
-      populateSelect(selectNivel, niveles, '— Todos los NIVELES —');
-      selectModalidad.innerHTML = '<option value="">— Todas las MODALIDADES —</option>'; selectModalidad.disabled = true;
-      selectNro.innerHTML = '<option value="">— Nº de ESCUELA —</option>'; selectNro.disabled = true;
-      applyFilters();
-    });
+      distrito.addEventListener('change', () => {
+        const filtered = data.filter(d => d.distrito === distrito.value);
+        fillSelect('nivelFilter', [...new Set(filtered.map(d => d.nivel).filter(Boolean))].sort());
+        document.getElementById('results').innerHTML = '';
+      });
 
-    selectNivel.addEventListener('change', ()=>{
-      const region = selectRegion.value; const distrito = selectDistrito.value; const nivel = selectNivel.value;
-      let filtered = rawData;
-      if(region) filtered = filtered.filter(r=>r.region_educativa === region);
-      if(distrito) filtered = filtered.filter(r=>r.distrito === distrito);
-      if(nivel) filtered = filtered.filter(r=>r.nivel === nivel);
-      const modalidades = uniqueSorted(filtered.map(r=>r.modalidad));
-      populateSelect(selectModalidad, modalidades, '— Todas las MODALIDADES —');
-      selectNro.innerHTML = '<option value="">— Nº de ESCUELA —</option>'; selectNro.disabled = true;
-      applyFilters();
-    });
+      nivel.addEventListener('change', () => {
+        const filtered = data.filter(d => d.nivel === nivel.value);
+        fillSelect('modalidadFilter', [...new Set(filtered.map(d => d.modalidad).filter(Boolean))].sort());
+        document.getElementById('results').innerHTML = '';
+      });
 
-    selectModalidad.addEventListener('change', ()=>{
-      const region = selectRegion.value; const distrito = selectDistrito.value; const nivel = selectNivel.value; const modalidad = selectModalidad.value;
-      let filtered = rawData;
-      if(region) filtered = filtered.filter(r=>r.region_educativa === region);
-      if(distrito) filtered = filtered.filter(r=>r.distrito === distrito);
-      if(nivel) filtered = filtered.filter(r=>r.nivel === nivel);
-      if(modalidad) filtered = filtered.filter(r=>r.modalidad === modalidad);
-      const numeros = uniqueSorted(filtered.map(r=>r.nro_escuela));
-      populateSelect(selectNro, numeros, '— Nº de ESCUELA —');
-      applyFilters();
-    });
+      modalidad.addEventListener('change', () => {
+        const filtered = data.filter(d => d.modalidad === modalidad.value);
+        fillSelect('numeroFilter', [...new Set(filtered.map(d => d.nro_escuela).filter(Boolean))].sort());
+        document.getElementById('results').innerHTML = '';
+      });
 
-    selectNro.addEventListener('change', applyFilters);
-    inputSearch.addEventListener('input', ()=>applyFilters());
-    btnReset.addEventListener('click', ()=>{selectRegion.value=''; selectDistrito.innerHTML='<option value="">— Todos los DISTRITOS —</option>'; selectDistrito.disabled=true; selectNivel.innerHTML='<option value="">— Todos los NIVELES —</option>'; selectNivel.disabled=true; selectModalidad.innerHTML='<option value="">— Todas las MODALIDADES —</option>'; selectModalidad.disabled=true; selectNro.innerHTML='<option value="">— Nº de ESCUELA —</option>'; selectNro.disabled=true; inputSearch.value=''; applyFilters();});
-
-    function applyFilters(){
-      const region = selectRegion.value; const distrito = selectDistrito.value; const nivel = selectNivel.value; const modalidad = selectModalidad.value; const nro = selectNro.value; const q = inputSearch.value.trim().toLowerCase();
-      let filtered = rawData.slice();
-      if(region) filtered = filtered.filter(r=>r.region_educativa === region);
-      if(distrito) filtered = filtered.filter(r=>r.distrito === distrito);
-      if(nivel) filtered = filtered.filter(r=>r.nivel === nivel);
-      if(modalidad) filtered = filtered.filter(r=>r.modalidad === modalidad);
-      if(nro) filtered = filtered.filter(r=>r.nro_escuela === nro);
-      if(q){
-        filtered = filtered.filter(r=>{
-          const hay = (r.nombre+' '+r.calle+' '+r.localidad+' '+r.clave+' '+r.distrito).toLowerCase();
-          return hay.includes(q);
-        });
-      }
-      renderCards(filtered);
-    }
-
-    function renderCards(data){
-      if(!data || data.length===0){
-        $results.innerHTML = '<div style="padding:12px;color:#444">No se encontraron escuelas que coincidan.</div>';
-        return;
-      }
-
-      $results.innerHTML = '';
-      data.forEach(row=>{
-        const card = document.createElement('div'); card.className='school-card';
-        const title = document.createElement('h3'); title.textContent = row.nombre || 'Sin nombre'; card.appendChild(title);
-        const meta = document.createElement('div'); meta.className='meta'; meta.textContent = `${row.localidad || ''} — ${row.distrito || ''} — ${row.tipo_organizacion || ''}`; card.appendChild(meta);
-
-        const kv = document.createElement('div'); kv.className='kv';
-        // show all fields except lat,long,the_geom
-        const skip = new Set(['latitud','longitud','the_geom']);
-        HEADERS.forEach(h=>{
-          if(skip.has(h)) return;
-          const val = row[h] || '';
-          if(val !== ''){
-            const span = document.createElement('span'); span.innerHTML = `<strong style="font-weight:700">${h.replace(/_/g,' ')}:</strong> ${escapeHtml(val)}`; kv.appendChild(span);
-          }
-        });
-        card.appendChild(kv);
-
-        const actions = document.createElement('div'); actions.className='actions';
-        const btnMap = document.createElement('button'); btnMap.className='btn btn-map'; btnMap.textContent='Ubicación';
-        btnMap.addEventListener('click', ()=>{
-          openMapForRow(row);
-        });
-        actions.appendChild(btnMap);
-        card.appendChild(actions);
-
-        $results.appendChild(card);
+      numero.addEventListener('change', () => {
+        const filtered = data.filter(d => d.nro_escuela === numero.value);
+        displayResults(filtered);
       });
     }
 
-    function openMapForRow(row){
-      const lat = row.latitud && row.latitud.replace(',', '.');
-      const lon = row.longitud && row.longitud.replace(',', '.');
-      let url = '';
-      if(lat && lon && !isNaN(Number(lat)) && !isNaN(Number(lon))){
-        url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(lat+','+lon)}`;
-      }else{
-        // fallback to address search
-        const addr = [row.calle, row.nro, row.localidad, row.distrito].filter(Boolean).join(' ');
-        url = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(addr)}`;
+    function displayResults(filtered) {
+      const container = document.getElementById('results');
+      container.innerHTML = '';
+      if (filtered.length === 0) {
+        container.innerHTML = '<p>No se encontraron resultados.</p>';
+        return;
       }
-      window.open(url, '_blank');
+
+      filtered.forEach(d => {
+        const loc = d.latitud && d.longitud ? `https://www.google.com/maps?q=${d.latitud},${d.longitud}` : `https://www.google.com/maps/search/${encodeURIComponent(d.nombre + ' ' + d.localidad)}`;
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML = `
+          <strong>${d.nombre}</strong><br>
+          Región: ${d.region_educativa}<br>
+          Distrito: ${d.distrito}<br>
+          Nivel: ${d.nivel}<br>
+          Modalidad: ${d.modalidad}<br>
+          Nº Escuela: ${d.nro_escuela}<br>
+          Calle: ${d.calle} ${d.nro}<br>
+          Localidad: ${d.localidad}<br>
+          Tel: (${d.caracteristica_telefonica}) ${d.nro_telefono}<br>
+          Email: ${d.email}<br>
+          Tipo: ${d.tipo_organizacion}<br>
+          Desfavorabilidad: ${d.desfavorabilidad}<br>
+          <a class="btn" href="${loc}" target="_blank">📍 Ver ubicación</a>
+        `;
+        container.appendChild(card);
+      });
     }
 
-    function escapeHtml(str){
-      return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    async function loadCounter() {
+      try {
+        const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTNNH-wuSaxPFutY94tKcrhwDknSefi0D_z8uIBEILzcbrObRTKCLqblHax0TO0nPfKu3dok8rRoCuU/pub?output=csv';
+        const res = await fetch(url);
+        const text = await res.text();
+        const visitas = text.split(',')[0].trim();
+        document.getElementById('contador').innerText = `Visitas: ${visitas}`;
+      } catch {
+        document.getElementById('contador').innerText = 'Visitas: -';
+      }
     }
 
-    // Start
-    fetchSheetHtml();
+    loadData();
+    loadCounter();
   </script>
 </body>
 </html>
