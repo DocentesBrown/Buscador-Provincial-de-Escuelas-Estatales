@@ -168,6 +168,7 @@
         document.getElementById('results').innerHTML = '';
       });
 
+      // --- LÓGICA MODIFICADA AQUÍ ---
       modalidad.addEventListener('change', () => {
         const filtered = data.filter(d => 
           d.region_educativa === region.value &&
@@ -175,11 +176,29 @@
           d.nivel === nivel.value &&
           d.modalidad === modalidad.value
         );
+        // 1. Llenamos el filtro de número (opcional)
         fillSelect('numeroFilter', [...new Set(filtered.map(d => d.nro_escuela).filter(Boolean))].sort());
-        document.getElementById('results').innerHTML = '';
+        
+        // 2. Mostramos los resultados de la modalidad seleccionada
+        displayResults(filtered);
       });
 
+      // --- LÓGICA MODIFICADA AQUÍ ---
       numero.addEventListener('change', () => {
+        // Si el usuario no selecciona ningún número, volvemos a mostrar
+        // todos los de la modalidad.
+        if (numero.value === "") {
+            const filtered = data.filter(d => 
+              d.region_educativa === region.value &&
+              d.distrito === distrito.value &&
+              d.nivel === nivel.value &&
+              d.modalidad === modalidad.value
+            );
+            displayResults(filtered);
+            return;
+        }
+
+        // Si el usuario selecciona un número, filtramos al detalle
         const filtered = data.filter(d => 
           d.region_educativa === region.value &&
           d.distrito === distrito.value &&
@@ -190,9 +209,6 @@
         displayResults(filtered);
       });
     }
-
-    
-    // --- FUNCIÓN 'displayResults' CON LINK CORREGIDO ---
 
     function displayResults(filtered) {
       const container = document.getElementById('results');
@@ -205,19 +221,13 @@
       filtered.forEach(d => {
         let query = '';
 
-        // 1. Prioridad: Usar 'latitud' y 'longitud' (Columnas P y Q)
         if (d.latitud && d.longitud) {
           query = `${d.latitud},${d.longitud}`;
-        }
-
-        // 2. Fallback: Usar la dirección si no hay lat/lon
-        if (!query) {
+        } else {
           query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
         }
         
-        // --- LÍNEA CORREGIDA ---
-        // Faltaba el $ y la URL de Google Maps era incorrecta.
-        const loc = `https://maps.google.com/?q=${encodeURIComponent(query)}`;
+        const loc = `https://www.google.com/maps/search/$7{encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
