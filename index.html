@@ -54,20 +54,71 @@
 
   <script>
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pub?gid=1973952134&single=true&output=csv';
-    let allData = []; // Guardamos los datos globalmente
+    let allData = []; 
+
+    // --- NUEVA FUNCIÓN PARA CORREGIR EL ERROR DE COLUMNAS ---
+    function parseCSV(text) {
+      const rows = [];
+      // Primero separamos por líneas
+      const lines = text.trim().split(/\r?\n/);
+
+      for (const line of lines) {
+        const rowData = [];
+        let currentField = '';
+        let inQuotes = false;
+
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+
+          if (char === '"') {
+            // Maneja comillas de inicio/fin y comillas escapadas ("")
+            if (inQuotes && line[i + 1] === '"') {
+              currentField += '"';
+              i++; // Saltamos la comilla escapada
+            } else {
+              inQuotes = !inQuotes;
+            }
+          } else if (char === ',' && !inQuotes) {
+            rowData.push(currentField);
+            currentField = '';
+          } else {
+            currentField += char;
+          }
+        }
+        rowData.push(currentField); // Agregamos el último campo
+        
+        // Limpiamos las comillas que quedaron al inicio/fin de cada campo
+        rows.push(rowData.map(field => field.trim().replace(/^"|"$/g, '')));
+      }
+      return rows;
+    }
 
     async function loadData() {
       try {
         const response = await fetch(sheetUrl);
         const csvText = await response.text();
-        const rows = csvText.trim().split(/\r?\n/).map(line => line.split(','));
-        const headers = rows[0].map(h => h.trim().toLowerCase().replace(/ /g, '_'));
-        allData = rows.slice(1).map(row => Object.fromEntries(headers.map((h, i) => [h, row[i] || ''])));
+        
+        // --- LÍNEA CORREGIDA ---
+        // Usamos la nueva función en lugar de los splits simples
+        const rows = parseCSV(csvText); 
+        
+        const headers = rows[0].map(h => 
+          h.trim().toLowerCase().replace(/ /g, '_')
+        );
+
+        allData = rows.slice(1).map(row => 
+          Object.fromEntries(headers.map((h, i) => [h, row[i] || '']))
+        );
+
+        // Verificación rápida en la consola (opcional)
+        // console.log("Headers detectados:", headers);
+        // console.log("Ejemplo de datos:", allData[0]);
 
         populateFilters(allData);
         setupFilterListeners(allData);
       } catch (error) {
         document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}</p>`;
+        console.error("Error en loadData:", error);
       }
     }
 
@@ -78,10 +129,9 @@
 
     function fillSelect(id, options) {
       const select = document.getElementById(id);
-      // Guardamos la opción "Seleccionar..."
       const defaultOption = select.querySelector('option[value=""]'); 
-      select.innerHTML = ''; // Limpiamos
-      select.appendChild(defaultOption); // La volvemos a agregar
+      select.innerHTML = ''; 
+      select.appendChild(defaultOption); 
       
       options.forEach(o => {
         const option = document.createElement('option');
@@ -90,9 +140,6 @@
         select.appendChild(option);
       });
     }
-
-    // --- SECCIÓN CORREGIDA ---
-    // La lógica de los filtros ahora es acumulativa
 
     function setupFilterListeners(data) {
       const region = document.getElementById('regionFilter');
@@ -104,7 +151,6 @@
       region.addEventListener('change', () => {
         const filtered = data.filter(d => d.region_educativa === region.value);
         fillSelect('distritoFilter', [...new Set(filtered.map(d => d.distrito).filter(Boolean))].sort());
-        // Reseteamos los filtros siguientes
         fillSelect('nivelFilter', []);
         fillSelect('modalidadFilter', []);
         fillSelect('numeroFilter', []);
@@ -116,8 +162,8 @@
           d.region_educativa === region.value &&
           d.distrito === distrito.value
         );
+        // Esta línea ahora debería funcionar bien
         fillSelect('nivelFilter', [...new Set(filtered.map(d => d.nivel).filter(Boolean))].sort());
-        // Reseteamos los filtros siguientes
         fillSelect('modalidadFilter', []);
         fillSelect('numeroFilter', []);
         document.getElementById('results').innerHTML = '';
@@ -130,7 +176,6 @@
           d.nivel === nivel.value
         );
         fillSelect('modalidadFilter', [...new Set(filtered.map(d => d.modalidad).filter(Boolean))].sort());
-        // Reseteamos los filtros siguientes
         fillSelect('numeroFilter', []);
         document.getElementById('results').innerHTML = '';
       });
@@ -147,7 +192,6 @@
       });
 
       numero.addEventListener('change', () => {
-        // El filtro final acumula TODOS los valores seleccionados
         const filtered = data.filter(d => 
           d.region_educativa === region.value &&
           d.distrito === distrito.value &&
@@ -159,9 +203,6 @@
       });
     }
 
-    // --- SECCIÓN CORREGIDA ---
-    // Arreglado el link de Google Maps
-
     function displayResults(filtered) {
       const container = document.getElementById('results');
       container.innerHTML = '';
@@ -171,11 +212,10 @@
       }
 
       filtered.forEach(d => {
-        // Corrección del link
         const query = d.latitud && d.longitud 
             ? `${d.latitud},${d.longitud}` 
-            : `${d.nombre} ${d.calle} ${d.nro} ${d.localidad}`;
-        const loc = `http://googleusercontent.com/maps.google.com/6{encodeURIComponent(query)}`;
+            : `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
+        const loc = `http://googleusercontent.com/maps.google.com/8{encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
@@ -186,7 +226,7 @@
           Nivel: ${d.nivel}<br>
           Modalidad: ${d.modalidad}<br>
           Nº Escuela: ${d.nro_escuela}<br>
-          Calle: ${d.calle} ${d.nro}<br>
+          Calle: ${d.calle} ${d.nro_calle}<br>
           Localidad: ${d.localidad}<br>
           Tel: (${d.caracteristica_telefonica}) ${d.nro_telefono}<br>
           Email: ${d.email}<br>
