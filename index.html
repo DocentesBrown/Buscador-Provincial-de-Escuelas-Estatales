@@ -19,70 +19,16 @@
       padding: 1rem;
       border-bottom: 5px solid #da6863;
     }
-    h1 {
-      margin: 0;
-    }
-    h2 {
-      font-size: 1rem;
-      margin-top: 0.5rem;
-      color: #f3efdc;
-    }
-    h2 a {
-      color: #da6863;
-      text-decoration: none;
-      font-weight: bold;
-    }
-    .filters {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 0.5rem;
-      margin: 1rem;
-    }
-    select {
-      padding: 0.5rem;
-      border-radius: 8px;
-      border: 1px solid #3d8fb0;
-      width: 90%;
-      max-width: 400px;
-    }
-    .results {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      margin: 1rem;
-    }
-    .card {
-      background-color: white;
-      border: 2px solid #3d8fb0;
-      border-radius: 12px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      padding: 1rem;
-      margin: 0.5rem;
-      width: 90%;
-      max-width: 600px;
-      text-align: left;
-    }
-    .btn {
-      display: inline-block;
-      background-color: #da6863;
-      color: white;
-      padding: 0.5rem 1rem;
-      border-radius: 8px;
-      text-decoration: none;
-      font-weight: bold;
-      margin-top: 0.5rem;
-    }
-    footer {
-      background-color: #4d3069;
-      color: white;
-      padding: 1rem;
-      margin-top: 1rem;
-    }
-    #contador {
-      font-weight: bold;
-      color: #f3efdc;
-    }
+    h1 { margin: 0; }
+    h2 { font-size: 1rem; margin-top: 0.5rem; color: #f3efdc; }
+    h2 a { color: #da6863; text-decoration: none; font-weight: bold; }
+    .filters { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; margin: 1rem; }
+    select { padding: 0.5rem; border-radius: 8px; border: 1px solid #3d8fb0; width: 90%; max-width: 400px; }
+    .results { display: flex; flex-direction: column; align-items: center; margin: 1rem; }
+    .card { background-color: white; border: 2px solid #3d8fb0; border-radius: 12px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); padding: 1rem; margin: 0.5rem; width: 90%; max-width: 600px; text-align: left; }
+    .btn { display: inline-block; background-color: #da6863; color: white; padding: 0.5rem 1rem; border-radius: 8px; text-decoration: none; font-weight: bold; margin-top: 0.5rem; }
+    footer { background-color: #4d3069; color: white; padding: 1rem; margin-top: 1rem; }
+    #contador { font-weight: bold; color: #f3efdc; }
   </style>
 </head>
 <body>
@@ -107,7 +53,6 @@
   </footer>
 
   <script>
-    // URL de la hoja publicada como HTML para poder parsearla
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pubhtml';
 
     async function loadData() {
@@ -116,10 +61,12 @@
         const html = await response.text();
         const parser = new DOMParser();
         const doc = parser.parseFromString(html, 'text/html');
-        const table = doc.querySelector('table');
-        if (!table) throw new Error('No se encontró ninguna tabla en la publicación.');
+        const tables = doc.querySelectorAll('table');
+        if (!tables || tables.length === 0) throw new Error('No se encontró ninguna tabla en la publicación.');
 
+        const table = tables[tables.length - 1]; // toma la última tabla (donde están los datos)
         const headers = Array.from(table.querySelectorAll('tr:first-child td, tr:first-child th')).map(h => h.innerText.trim());
+
         const rows = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => {
           const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
           return Object.fromEntries(headers.map((h, i) => [h, cells[i] || '']));
@@ -128,7 +75,7 @@
         populateFilters(rows);
         setupFilterListeners(rows);
       } catch (error) {
-        document.getElementById('results').innerHTML = `<p style="color:red">Error cargando datos: ${error.message}</p>`;
+        document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}</p>`;
       }
     }
 
@@ -204,7 +151,7 @@
           Email: ${d.email}<br>
           Tipo: ${d.tipo_organizacion}<br>
           Desfavorabilidad: ${d.desfavorabilidad}<br>
-          <a class="btn" href="${loc}" target="_blank">📍 Ver ubicación</a>
+          <a class='btn' href='${loc}' target='_blank'>📍 Ver ubicación</a>
         `;
         container.appendChild(card);
       });
