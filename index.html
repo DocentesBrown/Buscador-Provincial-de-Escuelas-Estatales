@@ -260,9 +260,9 @@
         const visitas = await res.text();
         
         // Lo mostramos en la página
-        document.getElementById('contador').innerText = `Visitas: ${visitas}`;
+        document.getElementById('contador').innerText = `Visitantes totales: ${visitas}`;
       } catch {
-        document.getElementById('contador').innerText = 'Visitas: -';
+        document.getElementById('contador').innerText = 'Visitantes totales: -';
       }
     }
 
