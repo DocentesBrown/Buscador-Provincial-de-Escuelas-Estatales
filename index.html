@@ -220,9 +220,10 @@
           query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
         }
         
-        // --- LÍNEA CORREGIDA ---
-        // Esta es la URL estándar de Google Maps para búsquedas.
-        const loc = `https://www.google.com/maps/search/$5{encodeURIComponent(query)}`;
+        // --- LÍNEA 100% CORREGIDA ---
+        // Esta es la URL estándar de Google Maps.
+        // Ahora sí tiene el $ y la URL correcta.
+        const loc = `https://www.google.com/maps?q=${encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
