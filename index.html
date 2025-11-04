@@ -247,11 +247,18 @@
     }
 
     async function loadCounter() {
+      // PEGÁ ACÁ TU "URL de la aplicación web" que copiaste en el paso 6
+      const url = 'https://script.google.com/macros/s/AKfycbyKykDszLonwKbCOozT3cgbctSayhhWR2T3vDf5ncMX296E-p6EytJuvWWPr6MO6xhg/exec';
+
       try {
-        const url = 'https://script.google.com/macros/s/AKfycbyKykDszLonwKbCOozT3cgbctSayhhWR2T3vDf5ncMX296E-p6EytJuvWWPr6MO6xhg/exec';
-        const res = await fetch(url);
-        const text = await res.text();
-        const visitas = text.split(',')[0].trim();
+        // Hacemos la llamada al script.
+        // Agregamos un 'cache-control' para evitar que la respuesta quede guardada
+        const res = await fetch(url, { cache: 'no-store' });
+        
+        // El script nos devuelve el número nuevo como texto plano
+        const visitas = await res.text();
+        
+        // Lo mostramos en la página
         document.getElementById('contador').innerText = `Visitas: ${visitas}`;
       } catch {
         document.getElementById('contador').innerText = 'Visitas: -';
