@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Buscador de Escuelas Estatales - Docentes Brown</title>
   <style>
+    /* ... (CSS sin cambios) ... */
     body {
       font-family: 'Segoe UI', sans-serif;
       background-color: #f3efdc;
@@ -59,7 +60,8 @@
 
     function parseCSV(text) {
       const rows = [];
-      const lines = text.trim().split(/\r?\n/);
+      // Se añade manejo de líneas vacías y se asegura que haya un salto de línea consistente
+      const lines = text.trim().split(/\r?\n/).filter(line => line.length > 0); 
 
       for (const line of lines) {
         const rowData = [];
@@ -85,6 +87,7 @@
         }
         rowData.push(currentField); 
         
+        // Se mapea y se eliminan las comillas alrededor, asegurando un campo limpio.
         rows.push(rowData.map(field => field.trim().replace(/^"|"$/g, '')));
       }
       return rows;
@@ -97,18 +100,27 @@
         
         const rows = parseCSV(csvText); 
         
+        if (rows.length === 0) {
+            document.getElementById('results').innerHTML = `<p style='color:orange'>El archivo de datos está vacío o es inaccesible.</p>`;
+            return;
+        }
+
         const headers = rows[0].map(h => 
-          h.trim().toLowerCase().replace(/ /g, '_')
+          h.trim().toLowerCase().replace(/ /g, '_').replace(/[^a-z0-9_]/g, '') // Limpieza de encabezados más estricta
         );
 
-        allData = rows.slice(1).map(row => 
-          Object.fromEntries(headers.map((h, i) => [h, row[i] || '']))
-        );
+        allData = rows.slice(1).map(row => {
+            const dataObject = {};
+            headers.forEach((h, i) => {
+                dataObject[h] = row[i] || '';
+            });
+            return dataObject;
+        });
 
         populateFilters(allData);
         setupFilterListeners(allData);
       } catch (error) {
-        document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}</p>`;
+        document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}. Verifica la URL del Google Sheet.</p>`;
       }
     }
 
@@ -119,9 +131,10 @@
 
     function fillSelect(id, options) {
       const select = document.getElementById(id);
-      const defaultOption = select.querySelector('option[value=""]'); 
+      // Se guarda la opción por defecto
+      const defaultOption = select.querySelector('option[value=""]').cloneNode(true) || new Option(select.id.replace('Filter', ''), ''); 
       select.innerHTML = ''; 
-      select.appendChild(defaultOption.cloneNode(true)); // Usar cloneNode(true) para no eliminar el original
+      select.appendChild(defaultOption); 
       
       options.forEach(o => {
         const option = document.createElement('option');
@@ -138,71 +151,59 @@
       const modalidad = document.getElementById('modalidadFilter');
       const numero = document.getElementById('numeroFilter');
 
-      region.addEventListener('change', () => {
-        const filtered = data.filter(d => d.region_educativa === region.value);
-        fillSelect('distritoFilter', [...new Set(filtered.map(d => d.distrito).filter(Boolean))].sort());
-        fillSelect('nivelFilter', []);
-        fillSelect('modalidadFilter', []);
-        fillSelect('numeroFilter', []);
-        document.getElementById('results').innerHTML = '';
-      });
+      // Funcionalidad de filtros simplificada para evitar repetición
+      function updateFilters(currentFilter, nextFilters) {
+        let filtered = data;
+        const regionVal = region.value;
+        const distritoVal = distrito.value;
+        const nivelVal = nivel.value;
+        const modalidadVal = modalidad.value;
 
-      distrito.addEventListener('change', () => {
-        const filtered = data.filter(d => 
-          d.region_educativa === region.value &&
-          d.distrito === distrito.value
-        );
-        fillSelect('nivelFilter', [...new Set(filtered.map(d => d.nivel).filter(Boolean))].sort());
-        fillSelect('modalidadFilter', []);
-        fillSelect('numeroFilter', []);
-        document.getElementById('results').innerHTML = '';
-      });
+        if (regionVal) filtered = filtered.filter(d => d.region_educativa === regionVal);
+        if (distritoVal) filtered = filtered.filter(d => d.distrito === distritoVal);
+        if (nivelVal) filtered = filtered.filter(d => d.nivel === nivelVal);
+        if (modalidadVal) filtered = filtered.filter(d => d.modalidad === modalidadVal);
 
-      nivel.addEventListener('change', () => {
-        const filtered = data.filter(d => 
-          d.region_educativa === region.value &&
-          d.distrito === distrito.value &&
-          d.nivel === nivel.value
-        );
-        fillSelect('modalidadFilter', [...new Set(filtered.map(d => d.modalidad).filter(Boolean))].sort());
-        fillSelect('numeroFilter', []);
-        document.getElementById('results').innerHTML = '';
-      });
-
-      modalidad.addEventListener('change', () => {
-        const filtered = data.filter(d => 
-          d.region_educativa === region.value &&
-          d.distrito === distrito.value &&
-          d.nivel === nivel.value &&
-          d.modalidad === modalidad.value
-        );
-        fillSelect('numeroFilter', [...new Set(filtered.map(d => d.nro_escuela).filter(Boolean))].sort());
-        displayResults(filtered);
-      });
-
-      numero.addEventListener('change', () => {
-        let filtered = [];
-        if (numero.value === "") {
-            filtered = data.filter(d => 
-              d.region_educativa === region.value &&
-              d.distrito === distrito.value &&
-              d.nivel === nivel.value &&
-              d.modalidad === modalidad.value
-            );
-        } else {
-            filtered = data.filter(d => 
-              d.region_educativa === region.value &&
-              d.distrito === distrito.value &&
-              d.nivel === nivel.value &&
-              d.modalidad === modalidad.value &&
-              d.nro_escuela === numero.value
-            );
+        if (nextFilters.includes('distritoFilter')) {
+          fillSelect('distritoFilter', [...new Set(filtered.map(d => d.distrito).filter(Boolean))].sort());
         }
-        displayResults(filtered);
-      });
+        if (nextFilters.includes('nivelFilter')) {
+          fillSelect('nivelFilter', [...new Set(filtered.map(d => d.nivel).filter(Boolean))].sort());
+        }
+        if (nextFilters.includes('modalidadFilter')) {
+          fillSelect('modalidadFilter', [...new Set(filtered.map(d => d.modalidad).filter(Boolean))].sort());
+        }
+        if (nextFilters.includes('numeroFilter')) {
+          fillSelect('numeroFilter', [...new Set(filtered.map(d => d.nro_escuela).filter(Boolean))].sort());
+        }
+
+        document.getElementById('results').innerHTML = '';
+        
+        // Muestra resultados solo si Modalidad o Número cambian (que implica que hay suficientes filtros)
+        if (currentFilter === 'modalidadFilter' || currentFilter === 'numeroFilter') {
+             // Si el último filtro es Número y está vacío, mostramos todos los resultados del filtro anterior.
+             if (currentFilter === 'numeroFilter' && numero.value === "") {
+                const prevFiltered = data.filter(d => 
+                    d.region_educativa === region.value &&
+                    d.distrito === distrito.value &&
+                    d.nivel === nivel.value &&
+                    d.modalidad === modalidad.value
+                );
+                displayResults(prevFiltered);
+             } else {
+                displayResults(filtered);
+             }
+        }
+      }
+
+      region.addEventListener('change', () => updateFilters('regionFilter', ['distritoFilter', 'nivelFilter', 'modalidadFilter', 'numeroFilter']));
+      distrito.addEventListener('change', () => updateFilters('distritoFilter', ['nivelFilter', 'modalidadFilter', 'numeroFilter']));
+      nivel.addEventListener('change', () => updateFilters('nivelFilter', ['modalidadFilter', 'numeroFilter']));
+      modalidad.addEventListener('change', () => updateFilters('modalidadFilter', ['numeroFilter']));
+      numero.addEventListener('change', () => updateFilters('numeroFilter', [])); // Solo llama a displayResults dentro de la función updateFilters
     }
 
-    // --- FUNCIÓN 'displayResults' CON LINK CORREGIDO ---
+    // --- FUNCIÓN 'displayResults' CON LA CORRECCIÓN DE URL DEFINITIVA ---
     function displayResults(filtered) {
       const container = document.getElementById('results');
       container.innerHTML = '';
@@ -214,31 +215,34 @@
       filtered.forEach(d => {
         let query = '';
 
-        if (d.latitud && d.longitud) {
+        if (d.latitud && d.longitud && d.latitud !== '' && d.longitud !== '') {
+          // Si tiene lat/long, usar coordenadas
           query = `${d.latitud},${d.longitud}`;
         } else {
-          query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
+          // Si no tiene, usar la dirección completa para la búsqueda
+          query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad} ${d.distrito}`;
         }
         
-        // --- LÍNEA CORREGIDA: Se usa la URL estándar de Google Maps Search ---
+        // ✅ CORRECCIÓN FINAL: Se usa la URL de Google Maps Search API correcta.
         const loc = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
-          <strong>${d.nombre}</strong><br>
-          Región: ${d.region_educativa}<br>
-          Distrito: ${d.distrito}<br>
-          Clave: ${d.clave}<br>
-          Nivel: ${d.nivel}<br>
-          Modalidad: ${d.modalidad}<br>
-          Nº Escuela: ${d.nro_escuela}<br>
-          Calle: ${d.calle} ${d.nro_calle}<br>
-          Entre: ${d.calle_lateral_derecha} y ${d.calle_lateral_izquierda}<br> Localidad: ${d.localidad}<br>
-          Tel: (${d.caracteristica_telefonica}) ${d.nro_telefono}<br>
-          Email: ${d.email}<br>
-          Tipo: ${d.tipo_organizacion}<br>
-          Desfavorabilidad: ${d.desfavorabilidad}<br>
+          <strong>${d.nombre || 'Nombre no disponible'}</strong><br>
+          Región: ${d.region_educativa || ''}<br>
+          Distrito: ${d.distrito || ''}<br>
+          Clave: ${d.clave || ''}<br>
+          Nivel: ${d.nivel || ''}<br>
+          Modalidad: ${d.modalidad || ''}<br>
+          Nº Escuela: ${d.nro_escuela || ''}<br>
+          Calle: ${d.calle || ''} ${d.nro_calle || ''}<br>
+          Entre: ${d.calle_lateral_derecha || ''} y ${d.calle_lateral_izquierda || ''}<br>
+          Localidad: ${d.localidad || ''}<br>
+          Tel: (${d.caracteristica_telefonica || ''}) ${d.nro_telefono || ''}<br>
+          Email: ${d.email || ''}<br>
+          Tipo: ${d.tipo_organizacion || ''}<br>
+          Desfavorabilidad: ${d.desfavorabilidad || ''}<br>
           <a class='btn' href='${loc}' target='_blank'>📍 Ver ubicación</a>
         `;
         container.appendChild(card);
@@ -250,14 +254,8 @@
       const url = 'https://script.google.com/macros/s/AKfycbyKykDszLonwKbCOozT3cgbctSayhhWR2T3vDf5ncMX296E-p6EytJuvWWPr6MO6xhg/exec';
 
       try {
-        // Hacemos la llamada al script.
-        // Agregamos un 'cache-control' para evitar que la respuesta quede guardada
         const res = await fetch(url, { cache: 'no-store' });
-        
-        // El script nos devuelve el número nuevo como texto plano
         const visitas = await res.text();
-        
-        // Lo mostramos en la página
         document.getElementById('contador').innerText = `Visitantes totales: ${visitas}`;
       } catch {
         document.getElementById('contador').innerText = 'Visitantes totales: -';
