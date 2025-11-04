@@ -54,6 +54,7 @@
 
   <script>
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pub?gid=1973952134&single=true&output=csv';
+    let allData = []; // Guardamos los datos globalmente
 
     async function loadData() {
       try {
@@ -61,10 +62,10 @@
         const csvText = await response.text();
         const rows = csvText.trim().split(/\r?\n/).map(line => line.split(','));
         const headers = rows[0].map(h => h.trim().toLowerCase().replace(/ /g, '_'));
-        const data = rows.slice(1).map(row => Object.fromEntries(headers.map((h, i) => [h, row[i] || ''])));
+        allData = rows.slice(1).map(row => Object.fromEntries(headers.map((h, i) => [h, row[i] || ''])));
 
-        populateFilters(data);
-        setupFilterListeners(data);
+        populateFilters(allData);
+        setupFilterListeners(allData);
       } catch (error) {
         document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}</p>`;
       }
@@ -77,8 +78,21 @@
 
     function fillSelect(id, options) {
       const select = document.getElementById(id);
-      select.innerHTML = '<option value="">Seleccionar</option>' + options.map(o => `<option value="${o}">${o}</option>`).join('');
+      // Guardamos la opción "Seleccionar..."
+      const defaultOption = select.querySelector('option[value=""]'); 
+      select.innerHTML = ''; // Limpiamos
+      select.appendChild(defaultOption); // La volvemos a agregar
+      
+      options.forEach(o => {
+        const option = document.createElement('option');
+        option.value = o;
+        option.textContent = o;
+        select.appendChild(option);
+      });
     }
+
+    // --- SECCIÓN CORREGIDA ---
+    // La lógica de los filtros ahora es acumulativa
 
     function setupFilterListeners(data) {
       const region = document.getElementById('regionFilter');
@@ -90,43 +104,79 @@
       region.addEventListener('change', () => {
         const filtered = data.filter(d => d.region_educativa === region.value);
         fillSelect('distritoFilter', [...new Set(filtered.map(d => d.distrito).filter(Boolean))].sort());
+        // Reseteamos los filtros siguientes
+        fillSelect('nivelFilter', []);
+        fillSelect('modalidadFilter', []);
+        fillSelect('numeroFilter', []);
         document.getElementById('results').innerHTML = '';
       });
 
       distrito.addEventListener('change', () => {
-        const filtered = data.filter(d => d.distrito === distrito.value);
+        const filtered = data.filter(d => 
+          d.region_educativa === region.value &&
+          d.distrito === distrito.value
+        );
         fillSelect('nivelFilter', [...new Set(filtered.map(d => d.nivel).filter(Boolean))].sort());
+        // Reseteamos los filtros siguientes
+        fillSelect('modalidadFilter', []);
+        fillSelect('numeroFilter', []);
         document.getElementById('results').innerHTML = '';
       });
 
       nivel.addEventListener('change', () => {
-        const filtered = data.filter(d => d.nivel === nivel.value);
+        const filtered = data.filter(d => 
+          d.region_educativa === region.value &&
+          d.distrito === distrito.value &&
+          d.nivel === nivel.value
+        );
         fillSelect('modalidadFilter', [...new Set(filtered.map(d => d.modalidad).filter(Boolean))].sort());
+        // Reseteamos los filtros siguientes
+        fillSelect('numeroFilter', []);
         document.getElementById('results').innerHTML = '';
       });
 
       modalidad.addEventListener('change', () => {
-        const filtered = data.filter(d => d.modalidad === modalidad.value);
+        const filtered = data.filter(d => 
+          d.region_educativa === region.value &&
+          d.distrito === distrito.value &&
+          d.nivel === nivel.value &&
+          d.modalidad === modalidad.value
+        );
         fillSelect('numeroFilter', [...new Set(filtered.map(d => d.nro_escuela).filter(Boolean))].sort());
         document.getElementById('results').innerHTML = '';
       });
 
       numero.addEventListener('change', () => {
-        const filtered = data.filter(d => d.nro_escuela === numero.value);
+        // El filtro final acumula TODOS los valores seleccionados
+        const filtered = data.filter(d => 
+          d.region_educativa === region.value &&
+          d.distrito === distrito.value &&
+          d.nivel === nivel.value &&
+          d.modalidad === modalidad.value &&
+          d.nro_escuela === numero.value
+        );
         displayResults(filtered);
       });
     }
+
+    // --- SECCIÓN CORREGIDA ---
+    // Arreglado el link de Google Maps
 
     function displayResults(filtered) {
       const container = document.getElementById('results');
       container.innerHTML = '';
       if (filtered.length === 0) {
-        container.innerHTML = '<p>No se encontraron resultados.</p>';
+        container.innerHTML = '<p>No se encontraron resultados para esta combinación de filtros.</p>';
         return;
       }
 
       filtered.forEach(d => {
-        const loc = d.latitud && d.longitud ? `https://www.google.com/maps?q=${d.latitud},${d.longitud}` : `https://www.google.com/maps/search/${encodeURIComponent(d.nombre + ' ' + d.localidad)}`;
+        // Corrección del link
+        const query = d.latitud && d.longitud 
+            ? `${d.latitud},${d.longitud}` 
+            : `${d.nombre} ${d.calle} ${d.nro} ${d.localidad}`;
+        const loc = `http://googleusercontent.com/maps.google.com/6{encodeURIComponent(query)}`;
+        
         const card = document.createElement('div');
         card.className = 'card';
         card.innerHTML = `
