@@ -191,8 +191,9 @@
       });
     }
 
-    // --- FUNCIÓN 'displayResults' CORREGIDA ---
-    // (Ahora maneja 'the_geom', 'latitud', y 'longitud' correctamente)
+    
+    // --- FUNCIÓN 'displayResults' SIMPLIFICADA ---
+    // (Lee lat/lon limpias directamente)
 
     function displayResults(filtered) {
       const container = document.getElementById('results');
@@ -205,33 +206,18 @@
       filtered.forEach(d => {
         let query = '';
 
-        // 1. Prioridad: Intentar parsear 'the_geom' (ej: "POINT (lon lat)")
-        if (d.the_geom && d.the_geom.startsWith('POINT')) {
-          try {
-            // "POINT (-57.947 -34.917)" -> ["-57.947", "-34.917"]
-            const parts = d.the_geom.replace('POINT (', '').replace(')', '').split(' ');
-            const lon = parts[0];
-            const lat = parts[1];
-            // Google Maps necesita "lat,lon"
-            if (lat && lon) {
-              query = `${lat},${lon}`;
-            }
-          } catch (e) { /* Falla el parseo, sigue al próximo método */ }
+        // 1. Prioridad: Usar 'latitud' y 'longitud' (Columnas P y Q)
+        // Como ya están limpias (ej: -34.9539091), las usamos directo.
+        if (d.latitud && d.longitud) {
+          query = `${d.latitud},${d.longitud}`;
         }
 
-        // 2. Segundo intento: Usar 'latitud' y 'longitud' (reemplazando coma por punto)
-        if (!query && d.latitud && d.longitud) {
-          const lat = d.latitud.replace(',', '.');
-          const lon = d.longitud.replace(',', '.');
-          query = `${lat},${lon}`;
-        }
-
-        // 3. Fallback: Usar la dirección
+        // 2. Fallback: Usar la dirección si no hay lat/lon
         if (!query) {
           query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
         }
         
-        const loc = `http://googleusercontent.com/maps/google.com/14{encodeURIComponent(query)}`;
+        const loc = `http://googleusercontent.com/maps/google.com/16{encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
