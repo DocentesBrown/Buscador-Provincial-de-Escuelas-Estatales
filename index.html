@@ -56,10 +56,8 @@
     const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pub?gid=1973952134&single=true&output=csv';
     let allData = []; 
 
-    // --- NUEVA FUNCIÓN PARA CORREGIR EL ERROR DE COLUMNAS ---
     function parseCSV(text) {
       const rows = [];
-      // Primero separamos por líneas
       const lines = text.trim().split(/\r?\n/);
 
       for (const line of lines) {
@@ -71,10 +69,9 @@
           const char = line[i];
 
           if (char === '"') {
-            // Maneja comillas de inicio/fin y comillas escapadas ("")
             if (inQuotes && line[i + 1] === '"') {
               currentField += '"';
-              i++; // Saltamos la comilla escapada
+              i++; 
             } else {
               inQuotes = !inQuotes;
             }
@@ -85,9 +82,8 @@
             currentField += char;
           }
         }
-        rowData.push(currentField); // Agregamos el último campo
+        rowData.push(currentField); 
         
-        // Limpiamos las comillas que quedaron al inicio/fin de cada campo
         rows.push(rowData.map(field => field.trim().replace(/^"|"$/g, '')));
       }
       return rows;
@@ -98,8 +94,6 @@
         const response = await fetch(sheetUrl);
         const csvText = await response.text();
         
-        // --- LÍNEA CORREGIDA ---
-        // Usamos la nueva función en lugar de los splits simples
         const rows = parseCSV(csvText); 
         
         const headers = rows[0].map(h => 
@@ -110,15 +104,10 @@
           Object.fromEntries(headers.map((h, i) => [h, row[i] || '']))
         );
 
-        // Verificación rápida en la consola (opcional)
-        // console.log("Headers detectados:", headers);
-        // console.log("Ejemplo de datos:", allData[0]);
-
         populateFilters(allData);
         setupFilterListeners(allData);
       } catch (error) {
         document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}</p>`;
-        console.error("Error en loadData:", error);
       }
     }
 
@@ -162,7 +151,6 @@
           d.region_educativa === region.value &&
           d.distrito === distrito.value
         );
-        // Esta línea ahora debería funcionar bien
         fillSelect('nivelFilter', [...new Set(filtered.map(d => d.nivel).filter(Boolean))].sort());
         fillSelect('modalidadFilter', []);
         fillSelect('numeroFilter', []);
@@ -203,6 +191,9 @@
       });
     }
 
+    // --- FUNCIÓN 'displayResults' CORREGIDA ---
+    // (Ahora maneja 'the_geom', 'latitud', y 'longitud' correctamente)
+
     function displayResults(filtered) {
       const container = document.getElementById('results');
       container.innerHTML = '';
@@ -212,10 +203,35 @@
       }
 
       filtered.forEach(d => {
-        const query = d.latitud && d.longitud 
-            ? `${d.latitud},${d.longitud}` 
-            : `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
-        const loc = `http://googleusercontent.com/maps.google.com/8{encodeURIComponent(query)}`;
+        let query = '';
+
+        // 1. Prioridad: Intentar parsear 'the_geom' (ej: "POINT (lon lat)")
+        if (d.the_geom && d.the_geom.startsWith('POINT')) {
+          try {
+            // "POINT (-57.947 -34.917)" -> ["-57.947", "-34.917"]
+            const parts = d.the_geom.replace('POINT (', '').replace(')', '').split(' ');
+            const lon = parts[0];
+            const lat = parts[1];
+            // Google Maps necesita "lat,lon"
+            if (lat && lon) {
+              query = `${lat},${lon}`;
+            }
+          } catch (e) { /* Falla el parseo, sigue al próximo método */ }
+        }
+
+        // 2. Segundo intento: Usar 'latitud' y 'longitud' (reemplazando coma por punto)
+        if (!query && d.latitud && d.longitud) {
+          const lat = d.latitud.replace(',', '.');
+          const lon = d.longitud.replace(',', '.');
+          query = `${lat},${lon}`;
+        }
+
+        // 3. Fallback: Usar la dirección
+        if (!query) {
+          query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
+        }
+        
+        const loc = `http://googleusercontent.com/maps/google.com/14{encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
