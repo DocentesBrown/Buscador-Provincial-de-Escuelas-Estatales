@@ -107,18 +107,26 @@
   </footer>
 
   <script>
-    // URL de la Google Sheet publicada en formato CSV (usando el ID proporcionado)
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/1bF2Fby2d9ucfCN9lsW5rplW6zlGcP8Ql/gviz/tq?tqx=out:csv';
+    // URL de la hoja publicada como HTML para poder parsearla
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pubhtml';
 
     async function loadData() {
       try {
         const response = await fetch(sheetUrl);
-        const csvText = await response.text();
-        const rows = csvText.split('\n').map(r => r.split(','));
-        const headers = rows.shift().map(h => h.trim().replaceAll('\"',''));
-        const data = rows.map(r => Object.fromEntries(headers.map((h, i) => [h, (r[i] || '').trim().replaceAll('\"','')])));
-        populateFilters(data);
-        setupFilterListeners(data);
+        const html = await response.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const table = doc.querySelector('table');
+        if (!table) throw new Error('No se encontró ninguna tabla en la publicación.');
+
+        const headers = Array.from(table.querySelectorAll('tr:first-child td, tr:first-child th')).map(h => h.innerText.trim());
+        const rows = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => {
+          const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
+          return Object.fromEntries(headers.map((h, i) => [h, cells[i] || '']));
+        });
+
+        populateFilters(rows);
+        setupFilterListeners(rows);
       } catch (error) {
         document.getElementById('results').innerHTML = `<p style="color:red">Error cargando datos: ${error.message}</p>`;
       }
