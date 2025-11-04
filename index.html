@@ -248,7 +248,7 @@
 
     async function loadCounter() {
       try {
-        const url = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTNNH-wuSaxPFutY94tKcrhwDknSefi0D_z8uIBEILzcbrObRTKCLqblHax0TO0nPfKu3dok8rRoCuU/pub?output=csv';
+        const url = 'https://script.google.com/macros/s/AKfycbyKykDszLonwKbCOozT3cgbctSayhhWR2T3vDf5ncMX296E-p6EytJuvWWPr6MO6xhg/exec';
         const res = await fetch(url);
         const text = await res.text();
         const visitas = text.split(',')[0].trim();
