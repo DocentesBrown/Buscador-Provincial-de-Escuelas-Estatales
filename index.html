@@ -121,7 +121,7 @@
       const select = document.getElementById(id);
       const defaultOption = select.querySelector('option[value=""]'); 
       select.innerHTML = ''; 
-      select.appendChild(defaultOption); 
+      select.appendChild(defaultOption.cloneNode(true)); // Usar cloneNode(true) para no eliminar el original
       
       options.forEach(o => {
         const option = document.createElement('option');
@@ -181,29 +181,28 @@
       });
 
       numero.addEventListener('change', () => {
+        let filtered = [];
         if (numero.value === "") {
-            const filtered = data.filter(d => 
+            filtered = data.filter(d => 
               d.region_educativa === region.value &&
               d.distrito === distrito.value &&
               d.nivel === nivel.value &&
               d.modalidad === modalidad.value
             );
-            displayResults(filtered);
-            return;
+        } else {
+            filtered = data.filter(d => 
+              d.region_educativa === region.value &&
+              d.distrito === distrito.value &&
+              d.nivel === nivel.value &&
+              d.modalidad === modalidad.value &&
+              d.nro_escuela === numero.value
+            );
         }
-
-        const filtered = data.filter(d => 
-          d.region_educativa === region.value &&
-          d.distrito === distrito.value &&
-          d.nivel === nivel.value &&
-          d.modalidad === modalidad.value &&
-          d.nro_escuela === numero.value
-        );
         displayResults(filtered);
       });
     }
 
-    // --- FUNCIÓN 'displayResults' CON LINK 100% CORREGIDO ---
+    // --- FUNCIÓN 'displayResults' CON LINK CORREGIDO ---
     function displayResults(filtered) {
       const container = document.getElementById('results');
       container.innerHTML = '';
@@ -221,10 +220,8 @@
           query = `${d.nombre} ${d.calle} ${d.nro_calle} ${d.localidad}`;
         }
         
-        // --- LÍNEA 100% CORREGIDA ---
-        // Esta es la URL estándar de Google Maps.
-        // Ahora sí tiene el $ y la URL correcta.
-        const loc = `https://www.google.com/maps?q=${encodeURIComponent(query)}`;
+        // --- LÍNEA CORREGIDA: Se usa la URL estándar de Google Maps Search ---
+        const loc = `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
         
         const card = document.createElement('div');
         card.className = 'card';
@@ -237,8 +234,7 @@
           Modalidad: ${d.modalidad}<br>
           Nº Escuela: ${d.nro_escuela}<br>
           Calle: ${d.calle} ${d.nro_calle}<br>
-          Entre: ${d.calle_lateral_derecha} y ${calle_lateral_izquierda}<br>
-          Localidad: ${d.localidad}<br>
+          Entre: ${d.calle_lateral_derecha} y ${d.calle_lateral_izquierda}<br> Localidad: ${d.localidad}<br>
           Tel: (${d.caracteristica_telefonica}) ${d.nro_telefono}<br>
           Email: ${d.email}<br>
           Tipo: ${d.tipo_organizacion}<br>
