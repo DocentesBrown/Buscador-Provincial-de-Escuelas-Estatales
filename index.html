@@ -53,27 +53,18 @@
   </footer>
 
   <script>
-    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pubhtml';
+    const sheetUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTxk9mBO2U4JKTaj4iLtYGzw4KWh7GNxfAqfOIj_Dgc1ciDLb7MKGDfnkvfmuFwOg/pub?gid=1973952134&single=true&output=csv';
 
     async function loadData() {
       try {
         const response = await fetch(sheetUrl);
-        const html = await response.text();
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(html, 'text/html');
-        const tables = doc.querySelectorAll('table');
-        if (!tables || tables.length === 0) throw new Error('No se encontró ninguna tabla en la publicación.');
+        const csvText = await response.text();
+        const rows = csvText.trim().split(/\r?\n/).map(line => line.split(','));
+        const headers = rows[0].map(h => h.trim().toLowerCase().replace(/ /g, '_'));
+        const data = rows.slice(1).map(row => Object.fromEntries(headers.map((h, i) => [h, row[i] || ''])));
 
-        const table = tables[tables.length - 1]; // toma la última tabla (donde están los datos)
-        const headers = Array.from(table.querySelectorAll('tr:first-child td, tr:first-child th')).map(h => h.innerText.trim());
-
-        const rows = Array.from(table.querySelectorAll('tr')).slice(1).map(tr => {
-          const cells = Array.from(tr.querySelectorAll('td')).map(td => td.innerText.trim());
-          return Object.fromEntries(headers.map((h, i) => [h, cells[i] || '']));
-        });
-
-        populateFilters(rows);
-        setupFilterListeners(rows);
+        populateFilters(data);
+        setupFilterListeners(data);
       } catch (error) {
         document.getElementById('results').innerHTML = `<p style='color:red'>Error cargando datos: ${error.message}</p>`;
       }
